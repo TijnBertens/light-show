@@ -1,0 +1,179 @@
+#ifndef INPUT_HPP
+#define INPUT_HPP
+
+#define GLFW_INCLUDE_NONE
+
+#include <GLFW/glfw3.h>
+
+class InputHandler {
+private:
+    GLFWwindow *window_handle;
+public:
+    /** Supply window handle along with framebuffer sizes. */
+    InputHandler(GLFWwindow *p_window, uint32_t p_size_x, uint32_t p_size_y);
+
+    virtual ~InputHandler();
+
+    /** Clear the input, populate it with new input. */
+    void pull_input();
+
+    /**
+     * Mouse scroll offset.
+     */
+private:
+    // the offset produced by scrolling since the last pull
+    double scroll_x_offset = 0.;
+    double scroll_y_offset = 0.;
+public:
+    double get_xoffset() const;
+
+    double get_yoffset() const;
+
+    void set_scroll_offset(double p_xoffset, double p_yoffset);
+
+    /**
+     * Cursor position.
+     */
+private:
+    // the position of the cursor at the next pull
+    // todo is this initialization correct?
+    double mouse_xpos = 0.;
+    double mouse_ypos = 0.;
+    // the position of the cursor at the last pull
+    // todo is this initialization correct?
+    double mouse_xpos_last = 0.;
+    double mouse_ypos_last = 0.;
+    // the offset produced by the cursor since the last pull
+    double mouse_xoffset = 0.;
+    double mouse_yoffset = 0.;
+public:
+
+    double get_mouse_xpos() const;
+
+    double get_mouse_ypos() const;
+
+    double get_mouse_xoffset() const;
+
+    double get_mouse_yoffset() const;
+
+    void set_cursor_position(double xpos, double ypos);
+
+    /**
+     * Keyboard and mouse buttons.
+     * Grouped together since their state representation is the same.
+     */
+private:
+    // number of key values defined in glfw
+    static constexpr const uint32_t KEY_VALUES = GLFW_KEY_LAST + 1;
+    // number of mouse button values defined in glfw
+    static constexpr const uint32_t MBN_VALUES = GLFW_MOUSE_BUTTON_LAST + 1;
+    // total number of keys tracked by the vectors
+    static constexpr const uint32_t KEYS = KEY_VALUES + MBN_VALUES;
+    // number of 32 bits vectors are needed to maintain all key values
+    static constexpr uint32_t VECTOR_COUNT = KEYS / 32 + ((KEYS % 32) ? 1 : 0);
+
+    /**
+     * bit vectors storing the state of the keys and mouse buttons
+     * first all of the keys, then all of the mouse buttons */
+    uint32_t *pressed;  // whether key has been pressed at least once since last pull
+    uint32_t *released; // whether key has been released at least once since last pull
+    uint32_t *down;     // whether key is down at next pull
+public:
+    /**
+     * This forms an interface of {input}. It maintains the state of all keyboard input, but the GLFW
+     * side is hidden. To add new keys or mouse buttons, simply add the mapping to the corresponding
+     * enum. */
+    enum key_value_t {
+        ESCAPE = GLFW_KEY_ESCAPE,
+        D = GLFW_KEY_D,
+        P = GLFW_KEY_P,
+        SPACE = GLFW_KEY_SPACE,
+        BACKSPACE = GLFW_KEY_BACKSPACE,
+        RIGHT = GLFW_KEY_RIGHT,
+        NUM_1 = GLFW_KEY_1,
+        NUM_2 = GLFW_KEY_2,
+        NUM_3 = GLFW_KEY_3,
+        NUM_4 = GLFW_KEY_4,
+        NUM_5 = GLFW_KEY_5,
+        NUM_6 = GLFW_KEY_6,
+        NUM_7 = GLFW_KEY_7,
+        NUM_8 = GLFW_KEY_8,
+        NUM_9 = GLFW_KEY_9,
+        NUM_0 = GLFW_KEY_0,
+        F1 = GLFW_KEY_F1,
+        F2 = GLFW_KEY_F2,
+        F3 = GLFW_KEY_F3,
+        F4 = GLFW_KEY_F4,
+        F5 = GLFW_KEY_F5,
+        F6 = GLFW_KEY_F6,
+        F7 = GLFW_KEY_F7,
+        F8 = GLFW_KEY_F8,
+        F9 = GLFW_KEY_F9,
+        F10 = GLFW_KEY_F10,
+        F11 = GLFW_KEY_F11,
+        F12 = GLFW_KEY_F12,
+    };
+    enum mouse_button_value_t {
+        LMB = GLFW_MOUSE_BUTTON_LEFT,
+        MMB = GLFW_MOUSE_BUTTON_MIDDLE,
+        RMB = GLFW_MOUSE_BUTTON_RIGHT
+    };
+
+    /** The states the keys and mouse buttons can be in, and are recorded for. */
+    enum key_state_t {
+        PRESSED,
+        RELEASED,
+        DOWN
+    };
+private:
+    uint32_t *get_vector_from_state(key_state_t p_state);
+
+    /**
+     * {p_bit} is index of a bit in the state vectors.
+     * {p_state} determines which state vector is updated.
+     * {p_set} whether to set or unset the bit.
+     */
+    void set_bit_state(uint32_t p_bit, key_state_t p_state, bool p_set);
+
+    bool get_bit_state(uint32_t p_bit, key_state_t p_state);
+
+public:
+    /**
+     * {p_value} is a GLFW key value (https://www.glfw.org/docs/3.3/group__keys.html).
+     * {p_set} whether to enable the bit in the vector.
+     * */
+    void set_key_state(int p_value, key_state_t p_state, bool p_set);
+
+    bool get_key_state(key_value_t p_value, key_state_t p_state);
+
+    /** analogue to {set_key_state} (https://www.glfw.org/docs/3.3/group__buttons.html)*/
+    void set_mouse_button_state(int p_value, key_state_t p_state, bool p_set);
+
+    /** analogue to {get_key_state} */
+    bool get_mouse_button_state(mouse_button_value_t p_value, key_state_t p_state);
+
+    /**
+     * Framebuffer.
+     */
+private:
+    uint32_t framebuffer_size_x;
+    uint32_t framebuffer_size_y;
+    bool framebuffer_resized = false;   // whether resized since the last pull
+    bool framebuffer_iconified = false; // whether window is iconified at the last pull
+public:
+    uint32_t get_size_x() const;
+
+    uint32_t get_size_y() const;
+
+    void set_size(uint32_t size_x, uint32_t size_y);
+
+    bool is_resized() const;
+
+    void set_resized(bool resized);
+
+    bool is_iconified() const;
+
+    void set_iconified(bool iconified);
+};
+
+#endif //INPUT_HPP

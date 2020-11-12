@@ -3,7 +3,14 @@ project(light_show)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(SOURCES src/main.cpp)
+set(SOURCES
+        src/opengl/shader.cpp
+        src/opengl/texture.cpp
+        src/util/ls_log.cpp
+        src/util/util.cpp
+        src/camera.cpp
+        src/input.cpp
+        src/main.cpp)
 
 # build glad (before adding compile options)
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/glad-0.1.34)
