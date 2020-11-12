@@ -87,6 +87,7 @@ CTestTestfile.cmake
 _deps
 
 # https://github.com/github/gitignore/blob/master/C%2B%2B.gitignore
+# NB: removed "*.obj"
 #########################################################################################################################
 # Prerequisites
 *.d
@@ -95,7 +96,6 @@ _deps
 *.slo
 *.lo
 *.o
-*.obj
 
 # Precompiled Headers
 *.gch

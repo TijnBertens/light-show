@@ -1,0 +1,15 @@
+Credit:
+https://3dmodelhaven.com/model/?m=Chandelier_03
+
+Changes:
+Removed "invert" nodes from all three material's normal input.
+
+Exported as .obj with Blender 2.90.1 with only the exact following options:
+Property      Value
+-------------------------------------------------------------------------------
+Objects as    OBJ Objects, Material Groups
+Scale         1.00
+Path Mode     Copy
+Forward       -Z Forward
+Up            Y Up
+Geometry      Apply Modifiers, Write Normals, Include UVs, Write Materials
