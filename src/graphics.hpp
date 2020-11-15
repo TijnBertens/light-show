@@ -16,6 +16,7 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
+#include "util/ls_log.hpp"
 #include "asset_manager.hpp"
 
 struct IndexBuffer {

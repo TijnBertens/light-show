@@ -435,7 +435,6 @@ Window::Window(uint32_t width, uint32_t height, const char *title) {
 
     glClearColor(241.f / 255.f, 250.f / 255.f, 238.f / 255.f, 1);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, globalCursorPositionCallback);
     glfwSetMouseButtonCallback(window, globalMouseButtonCallback);
     glfwSetScrollCallback(window, globalMouseScrollCallback);
@@ -577,7 +576,7 @@ bool ShaderProgram::checkShaderCompilation(GLuint shader) {
         std::vector<GLchar> errorLog(maxLength);
         glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
 
-        fprintf(stderr, "%s\n", &errorLog[0]);
+        ls_log::log(LOG_ERROR, "%s\n", &errorLog[0]);
 
         glDeleteShader(shader);
         return false;
@@ -597,7 +596,7 @@ bool ShaderProgram::checkProgramLinking(GLuint program) {
         std::vector<GLchar> errorLog(maxLength);
         glGetProgramInfoLog(program, maxLength, &maxLength, &errorLog[0]);
 
-        fprintf(stderr, "%s\n", &errorLog[0]);
+        ls_log::log(LOG_ERROR, "%s\n", &errorLog[0]);
 
         glDeleteProgram(program);
         return false;

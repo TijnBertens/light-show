@@ -52,6 +52,8 @@ Texture AssetManager::loadTexture(const std::string &file) {
 
         // check if the texture could be loaded
         if(data == nullptr) {
+            ls_log::log(LOG_ERROR, "Could not load texture at location: %s\n", file.c_str());
+
             tex.data = nullptr;
             return tex;
         }
@@ -187,7 +189,7 @@ AssetID AssetManager::loadObj(const std::string &dir, const std::string &file) {
         bool usesNormalTexture = mat.bump_texname != "";
 
         if(usesAlbedoTexture) {
-            newMaterial.albedoTexture = loadTexture("../res/objects/" + mat.diffuse_texname);
+            newMaterial.albedoTexture = loadTexture(new_dir + mat.diffuse_texname);
         } else {
             newMaterial.albedo.x = mat.diffuse[0];
             newMaterial.albedo.y = mat.diffuse[1];
@@ -195,7 +197,7 @@ AssetID AssetManager::loadObj(const std::string &dir, const std::string &file) {
         }
 
         if(usesRoughnessTexture) {
-            newMaterial.roughnessTexture = loadTexture("../res/objects/" + mat.specular_highlight_texname);
+            newMaterial.roughnessTexture = loadTexture(new_dir + mat.specular_highlight_texname);
         } else {
             //TODO: gruesome hack for blender, instead should use PBR extension but blender doesn't support that
             //https://developer.blender.org/diffusion/BA/browse/master/io_scene_obj/export_obj.py
@@ -204,7 +206,7 @@ AssetID AssetManager::loadObj(const std::string &dir, const std::string &file) {
 
         if(usesMetallicTexture) {
             // todo: nol: {reflection_texname} is deprecated see above, this branch is never taken
-//            newMaterial.metallicTexture = loadTexture("../res/objects/" + mat.reflection_texname);
+//            newMaterial.metallicTexture = loadTexture(new_dir + mat.reflection_texname);
         } else {
             //TODO: gruesome hack for blender, instead should use PBR extension but blender doesn't support that
             if(mat.ambient[0] == 1.0 && mat.ambient[1] == 1.0 && mat.ambient[2] == 1.0) {
@@ -215,7 +217,7 @@ AssetID AssetManager::loadObj(const std::string &dir, const std::string &file) {
         }
 
         if(usesNormalTexture) {
-            newMaterial.normalMap = loadTexture("../res/objects/" + mat.bump_texname);
+            newMaterial.normalMap = loadTexture(new_dir + mat.bump_texname);
         }
 
         result.materials.emplace_back(newMaterial);

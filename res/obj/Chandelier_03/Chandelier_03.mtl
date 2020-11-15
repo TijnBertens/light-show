@@ -10,7 +10,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump Chandelier_03_8-bit_Normal.png
+map_bump Chandelier_03_8-bit_Normal.png
 map_Kd Chandelier_03_8-bit_Diffuse.png
 
 newmtl Chandelier_03_bulb
@@ -22,7 +22,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump Chandelier_03_8-bit_Normal.png
+map_bump Chandelier_03_8-bit_Normal.png
 
 newmtl Chandelier_03_glass
 Ns 225.000000
@@ -33,4 +33,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump Chandelier_03_8-bit_Normal.png
+map_bump Chandelier_03_8-bit_Normal.png

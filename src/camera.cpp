@@ -43,7 +43,7 @@ glm::vec3 Camera::get_camera_position()
     glm::vec4 above = glm::vec4(0.f, 0.f, dist, 0.f);
     glm::vec4 position = rotation * above;
 
-    glm::vec3 position_3 = glm::vec3(position.x / position.w, position.y / position.w, position.z / position.w);
+    glm::vec3 position_3 = glm::vec3(position.x, position.y, position.z);
 
     return position_3 + target;
 }
