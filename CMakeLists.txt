@@ -8,6 +8,8 @@ set(SOURCES
         src/opengl/texture.cpp
         src/util/ls_log.cpp
         src/util/util.cpp
+        src/asset_manager.cpp
+        src/graphics.cpp
         src/camera.cpp
         src/input.cpp
         src/main.cpp)
