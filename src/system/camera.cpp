@@ -7,12 +7,8 @@ Camera::Camera(
         float p_aspect_ratio, float p_fov, float p_near_clipping_dist, float p_far_clipping_dist
 ) :
         aspect_ratio(p_aspect_ratio), fov(p_fov), near_clipping_dist(p_near_clipping_dist),
-        far_clipping_dist(p_far_clipping_dist)
-{
-    target = glm::vec3(0.f);
-    angles = glm::vec3(0.f);
-    zoom_level = 5.f;
-}
+        far_clipping_dist(p_far_clipping_dist), target(glm::vec3(0.f)), angles(glm::vec3(0.f)), zoom_level(5.f)
+{}
 
 void Camera::add_zoom(float zoom_increment)
 {
@@ -68,12 +64,7 @@ void Camera::translate(double offset_xpos, double offset_ypos)
     glm::vec4 rotated_offset = rotation * offset;
 
     // add offset to current lookat
-    glm::vec3 rotated_offset_3 = glm::vec3(
-            rotated_offset.x / rotated_offset.w,
-            rotated_offset.y / rotated_offset.w,
-            rotated_offset.z / rotated_offset.w);
-
-    target += rotated_offset_3;
+    target += glm::vec3(rotated_offset.x, rotated_offset.y, rotated_offset.z);
 }
 
 void Camera::rotate(double offset_xpos, double offset_ypos)

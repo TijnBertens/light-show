@@ -12,3 +12,9 @@ Steps:
 * Download [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader/releases/tag/v1.0.6) single header into directory `external/tinyobjloader`.
 * Download [Nuklear](https://github.com/Immediate-Mode-UI/Nuklear) single header into directory `external/nuklear`.
 * Build using CMake.
+
+#### Controls
+*   Drag MMB to orbit around the camera's focal point.
+*   Drag RMB to move the camera's focal point in the XZ-plane.
+*   Scroll to change the distance of the camera to its focal point.
+*   Press ESC to close the program.

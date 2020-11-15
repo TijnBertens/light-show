@@ -2,26 +2,12 @@
 // Created by Tijn Bertens on 28-9-2019.
 //
 
-#include <glm/gtc/type_ptr.hpp>
 #include "graphics.hpp"
 
-void globalErrorCallback(int error, const char *description) {
-    fprintf(stderr, "Error: %s\n", description);
-}
+#include <glm/gtc/type_ptr.hpp>
 
-void globalCursorPositionCallback(GLFWwindow *window, double xpos, double ypos) {
-    WindowManager::getInstance()->cursorPositionCallback(window, xpos, ypos);
-}
-
-void globalMouseButtonCallback(GLFWwindow *window, int32_t button, int32_t action, int32_t mods) {
-    WindowManager::getInstance()->mouseButtonCallback(window, button, action, mods);
-}
-
-void globalMouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
-    WindowManager::getInstance()->mouseScrollCallback(window, xoffset, yoffset);
-}
-
-InstanceTransformBuffer InstanceTransformBuffer::create(std::vector<glm::mat4> *transforms) {
+InstanceTransformBuffer InstanceTransformBuffer::create(std::vector<glm::mat4> *transforms)
+{
     InstanceTransformBuffer result = {};
 
     GLuint buffer;
@@ -38,11 +24,13 @@ InstanceTransformBuffer InstanceTransformBuffer::create(std::vector<glm::mat4> *
     return result;
 }
 
-void InstanceTransformBuffer::destroy() {
+void InstanceTransformBuffer::destroy()
+{
     glDeleteBuffers(1, &buffer);
 }
 
-void InstanceTransformBuffer::updateData(std::vector<glm::mat4> *transforms) {
+void InstanceTransformBuffer::updateData(std::vector<glm::mat4> *transforms)
+{
     if (transforms->size() != this->elementCount) {
         printf("Instance transform buffer updated with wrong element count. Got %u while expecting %u. \n",
                transforms->size(), this->elementCount
@@ -54,7 +42,8 @@ void InstanceTransformBuffer::updateData(std::vector<glm::mat4> *transforms) {
     glBufferData(GL_ARRAY_BUFFER, transforms->size() * sizeof(glm::mat4), &(*transforms)[0], GL_STATIC_DRAW);
 }
 
-GLint createTexture(const Texture *tex) {
+GLint createTexture(const Texture *tex)
+{
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -103,7 +92,8 @@ GLint createTexture(const Texture *tex) {
     return texture;
 }
 
-VertexArrayObject VertexArrayObject::create(Model *model) {
+VertexArrayObject VertexArrayObject::create(Model *model)
+{
     //TODO: robustness
     VertexArrayObject result = {};
 
@@ -120,7 +110,8 @@ VertexArrayObject VertexArrayObject::create(Model *model) {
         GLuint indexBuffer;
         glGenBuffers(1, &indexBuffer);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, materialSubMesh.indices.size() * sizeof(uint32_t), &materialSubMesh.indices[0],
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, materialSubMesh.indices.size() * sizeof(uint32_t),
+                     &materialSubMesh.indices[0],
                      GL_STATIC_DRAW);
 
         IndexBuffer buffer = {};
@@ -155,7 +146,8 @@ VertexArrayObject VertexArrayObject::create(Model *model) {
     return result;
 }
 
-void VertexArrayObject::unload() {
+void VertexArrayObject::unload()
+{
     glDeleteBuffers(1, &vertexBuffer);
 
     for (auto &indexBuffer: materialIndexBuffers) {
@@ -165,15 +157,18 @@ void VertexArrayObject::unload() {
     //TODO: unload textures
 }
 
-Renderer::Renderer() {
+Renderer::Renderer()
+{
 
 }
 
-void Renderer::clearScreen() {
+void Renderer::clearScreen()
+{
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Renderer::renderModel(AssetID id, glm::mat4 transform) {
+void Renderer::renderModel(AssetID id, glm::mat4 transform)
+{
     assert(graphicsManager);
 
     VertexArrayObject *vao = graphicsManager->getVAO(id);
@@ -263,15 +258,18 @@ void Renderer::renderModel(AssetID id, glm::mat4 transform) {
     }
 }
 
-void Renderer::setView(glm::mat4 viewMatrix) {
+void Renderer::setView(glm::mat4 viewMatrix)
+{
     this->activeViewMatrix = viewMatrix;
 }
 
-void Renderer::setPerspective(glm::mat4 perspectiveMatrix) {
+void Renderer::setPerspective(glm::mat4 perspectiveMatrix)
+{
     this->activePerspectiveMatrix = perspectiveMatrix;
 }
 
-void Renderer::useShader(AssetID shaderID) {
+void Renderer::useShader(AssetID shaderID)
+{
     assert(graphicsManager);
     assert(shaderID.type == SHADER);
 
@@ -283,15 +281,18 @@ void Renderer::useShader(AssetID shaderID) {
     }
 }
 
-void Renderer::setGraphicsManager(GraphicsManager *graphicsManager) {
+void Renderer::setGraphicsManager(GraphicsManager *graphicsManager)
+{
     this->graphicsManager = graphicsManager;
 }
 
-void Renderer::setCameraPosition(glm::vec3 pos) {
+void Renderer::setCameraPosition(glm::vec3 pos)
+{
     this->cameraPosition = pos;
 }
 
-void Renderer::renderModelInstanced(AssetID id, InstanceTransformBuffer transforms) {
+void Renderer::renderModelInstanced(AssetID id, InstanceTransformBuffer transforms)
+{
     assert(graphicsManager);
 
     VertexArrayObject *vao = graphicsManager->getVAO(id);
@@ -349,13 +350,16 @@ void Renderer::renderModelInstanced(AssetID id, InstanceTransformBuffer transfor
     glVertexAttribPointer(modelPosition, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void *) 0);
 
     glEnableVertexAttribArray(modelPosition + 1);
-    glVertexAttribPointer(modelPosition + 1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void *) (1 * sizeof(glm::vec4)));
+    glVertexAttribPointer(modelPosition + 1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4),
+                          (void *) (1 * sizeof(glm::vec4)));
 
     glEnableVertexAttribArray(modelPosition + 2);
-    glVertexAttribPointer(modelPosition + 2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void *) (2 * sizeof(glm::vec4)));
+    glVertexAttribPointer(modelPosition + 2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4),
+                          (void *) (2 * sizeof(glm::vec4)));
 
     glEnableVertexAttribArray(modelPosition + 3);
-    glVertexAttribPointer(modelPosition + 3, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void *) (3 * sizeof(glm::vec4)));
+    glVertexAttribPointer(modelPosition + 3, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4),
+                          (void *) (3 * sizeof(glm::vec4)));
 
     glVertexAttribDivisor(modelPosition + 0, 1);
     glVertexAttribDivisor(modelPosition + 1, 1);
@@ -405,167 +409,9 @@ void Renderer::renderModelInstanced(AssetID id, InstanceTransformBuffer transfor
     }
 }
 
-Window::Window(uint32_t width, uint32_t height, const char *title) {
-    //TODO: find a place to initialize/load GL.
-    WindowManager::getInstance()->registerWindow(this);
 
-    //TODO: temp AA
-    glfwWindowHint(GLFW_SAMPLES, 8);
-    GLFWwindow *window = glfwCreateWindow(width, height, title, NULL, NULL);
-
-    if (!window) {
-        printf("Could not open glfw window.\n");
-        glfwTerminate();
-        assert(false);
-    }
-
-    glfwMakeContextCurrent(window);
-
-    if (!gladLoadGL()) {
-        printf("Glad could not load GL.\n");
-        glfwTerminate();
-        assert(false);
-    }
-
-    glEnable(GL_MULTISAMPLE);
-    glEnable(GL_DEPTH_TEST);
-
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-
-    glClearColor(241.f / 255.f, 250.f / 255.f, 238.f / 255.f, 1);
-
-    glfwSetCursorPosCallback(window, globalCursorPositionCallback);
-    glfwSetMouseButtonCallback(window, globalMouseButtonCallback);
-    glfwSetScrollCallback(window, globalMouseScrollCallback);
-
-    this->handle = window;
-    this->width = width;
-    this->height = height;
-    this->title = title;
-
-    this->renderer = new Renderer();
-}
-
-void Window::swapBuffers() {
-    glfwSwapBuffers(this->handle);
-}
-
-void Window::pollEvents() {
-    glfwPollEvents();
-}
-
-Renderer *Window::getRenderer() {
-    return this->renderer;
-}
-
-bool Window::shouldClose() {
-    return glfwWindowShouldClose(this->handle);
-}
-
-GLFWwindow *Window::getHandle() {
-    return this->handle;
-}
-
-void Window::cursorPositionCallback(double xPos, double yPos) {
-    for (auto &listener: this->inputListeners) {
-        listener->onMousePositionCallback(xPos, yPos);
-    }
-
-    float relX = (float) (xPos - prevMouseX);
-    float relY = (float) (yPos - prevMouseY);
-
-    if (relX != 0 || relY != 0) {
-        for (auto &listener: this->inputListeners) {
-            listener->onMouseMoved(relX, relY);
-        }
-    }
-
-    prevMouseX = (float) xPos;
-    prevMouseY = (float) yPos;
-}
-
-void Window::mouseButtonCallback(int32_t button, int32_t action, int32_t mods) {
-    for (auto &listener: this->inputListeners) {
-        listener->onMouseButton(button, action, mods);
-    }
-}
-
-void Window::mouseScrollCallback(float xoffset, float yoffset) {
-    for (auto &listener: this->inputListeners) {
-        listener->onMouseScroll(xoffset, yoffset);
-    }
-}
-
-void Window::registerInputListener(IInputListener *listener) {
-    this->inputListeners.emplace_back(listener);
-}
-
-void Window::unregisterInputListener(IInputListener *listener) {
-    std::remove(this->inputListeners.begin(), this->inputListeners.end(), listener);
-}
-
-void Window::destroy() {
-    delete this->renderer;
-
-    //TODO: destroy window
-}
-
-WindowManager *WindowManager::singletonInstance = 0;
-
-WindowManager::WindowManager() {
-    if (!glfwInit()) {
-        printf("Could not initialize glfw.\n");
-        assert(false);
-    }
-    glfwSetErrorCallback(globalErrorCallback);
-}
-
-void WindowManager::cursorPositionCallback(GLFWwindow *window, double xpos, double ypos) {
-    for (auto &win : this->windows) {
-        if (window == win->getHandle()) {
-            win->cursorPositionCallback(xpos, ypos);
-            break;
-        }
-    }
-}
-
-void WindowManager::mouseButtonCallback(GLFWwindow *window, int32_t button, int32_t action, int32_t mods) {
-    for (auto &win : this->windows) {
-        if (window == win->getHandle()) {
-            win->mouseButtonCallback(button, action, mods);
-            break;
-        }
-    }
-}
-
-void WindowManager::mouseScrollCallback(GLFWwindow *window, float xoffset, float yoffset) {
-    for (auto &win : this->windows) {
-        if (window == win->getHandle()) {
-            win->mouseScrollCallback(xoffset, yoffset);
-            break;
-        }
-    }
-}
-
-void WindowManager::registerWindow(Window *window) {
-    assert(std::find(windows.begin(), windows.end(), window) == windows.end());
-    this->windows.emplace_back(window);
-}
-
-void WindowManager::deregisterWindow(Window *window) {
-    std::remove(windows.begin(), windows.end(), window);
-}
-
-WindowManager *WindowManager::getInstance() {
-    if (!singletonInstance) {
-        singletonInstance = new WindowManager();
-    }
-
-    return singletonInstance;
-}
-
-bool ShaderProgram::checkShaderCompilation(GLuint shader) {
+bool ShaderProgram::checkShaderCompilation(GLuint shader)
+{
     GLint isCompiled = 0;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
     if (isCompiled == GL_FALSE) {
@@ -585,7 +431,8 @@ bool ShaderProgram::checkShaderCompilation(GLuint shader) {
     return true;
 }
 
-bool ShaderProgram::checkProgramLinking(GLuint program) {
+bool ShaderProgram::checkProgramLinking(GLuint program)
+{
     GLint isCompiled = 0;
     glGetProgramiv(program, GL_LINK_STATUS, &isCompiled);
     if (isCompiled == GL_FALSE) {
@@ -605,7 +452,8 @@ bool ShaderProgram::checkProgramLinking(GLuint program) {
     return true;
 }
 
-ShaderProgram ShaderProgram::createShaderProgram(const char *vertexText, const char *fragmentText) {
+ShaderProgram ShaderProgram::createShaderProgram(const char *vertexText, const char *fragmentText)
+{
     ShaderProgram result = {};
 
     GLuint vertexShader, fragmentShader;
@@ -655,23 +503,27 @@ ShaderProgram ShaderProgram::createShaderProgram(const char *vertexText, const c
     return result;
 }
 
-VertexArrayObject *GraphicsManager::getVAO(AssetID assetId) {
+VertexArrayObject *GraphicsManager::getVAO(AssetID assetId)
+{
     assert(assetId.type == MODEL);
     return &loadedModels.at(assetId.ID);
 }
 
-ShaderProgram *GraphicsManager::getShaderProgram(AssetID assetId) {
+ShaderProgram *GraphicsManager::getShaderProgram(AssetID assetId)
+{
     assert(assetId.type == SHADER);
     return &loadedShaders.at(assetId.ID);
 }
 
-void GraphicsManager::loadModel(Model *model) {
+void GraphicsManager::loadModel(Model *model)
+{
     //TODO: robustness
     VertexArrayObject vao = VertexArrayObject::create(model);
     loadedModels.emplace(model->assetID.ID, vao);
 }
 
-void GraphicsManager::loadShader(Shader *shader) {
+void GraphicsManager::loadShader(Shader *shader)
+{
     //TODO: robustness?
     ShaderProgram s = ShaderProgram::createShaderProgram(shader->vertexShaderText.c_str(),
                                                          shader->fragmentShaderText.c_str());

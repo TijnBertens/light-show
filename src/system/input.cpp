@@ -3,11 +3,11 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "util/ls_log.hpp"
+#include "../util/ls_log.hpp"
 
-InputHandler::InputHandler(GLFWwindow *p_window, uint32_t p_size_x, uint32_t p_size_y
+InputHandler::InputHandler(uint32_t p_size_x, uint32_t p_size_y
 ) :
-        window_handle(p_window), framebuffer_size_x(p_size_x), framebuffer_size_y(p_size_y)
+        framebuffer_size_x(p_size_x), framebuffer_size_y(p_size_y)
 {
     // initialize the bit vectors with the correct amount of memory
     pressed = (uint32_t *) calloc(VECTOR_COUNT, sizeof(uint32_t));

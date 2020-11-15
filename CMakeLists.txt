@@ -6,12 +6,13 @@ set(CMAKE_CXX_STANDARD 14)
 set(SOURCES
         src/opengl/shader.cpp
         src/opengl/texture.cpp
+        src/system/asset_manager.cpp
+        src/system/camera.cpp
+        src/system/graphics.cpp
+        src/system/input.cpp
+        src/system/window.cpp
         src/util/ls_log.cpp
         src/util/util.cpp
-        src/asset_manager.cpp
-        src/graphics.cpp
-        src/camera.cpp
-        src/input.cpp
         src/main.cpp)
 
 # build glad (before adding compile options)

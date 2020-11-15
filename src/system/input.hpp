@@ -6,11 +6,10 @@
 #include <GLFW/glfw3.h>
 
 class InputHandler {
-private:
-    GLFWwindow *window_handle;
 public:
-    /** Supply window handle along with framebuffer sizes. */
-    InputHandler(GLFWwindow *p_window, uint32_t p_size_x, uint32_t p_size_y);
+    // todo should maybe extend this to pass along all initial state (cursor pos etc.)
+    /** Supply initial with framebuffer sizes. */
+    InputHandler(uint32_t p_size_x, uint32_t p_size_y);
 
     virtual ~InputHandler();
 

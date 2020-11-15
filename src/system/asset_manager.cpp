@@ -7,17 +7,21 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 
 #include "tiny_obj_loader.h"
-#include "util/ls_log.hpp"
+#include "../util/ls_log.hpp"
 
 #include <stb_image.h> // NB: required define is in main.cpp
 
-AssetID::AssetID(AssetType type, uint64_t id) : type(type), ID(id) {}
+AssetID::AssetID(AssetType type, uint64_t id) : type(type), ID(id)
+{}
 
-Model::Model(uint64_t ID) : assetID(MODEL, ID) {}
+Model::Model(uint64_t ID) : assetID(MODEL, ID)
+{}
 
-Shader::Shader(uint64_t ID) : assetID(SHADER, ID) {}
+Shader::Shader(uint64_t ID) : assetID(SHADER, ID)
+{}
 
-Texture AssetManager::loadTexture(const std::string &file) {
+Texture AssetManager::loadTexture(const std::string &file)
+{
     Texture tex = {};
 
     bool is16bit = stbi_is_16_bit(file.c_str());
@@ -31,7 +35,7 @@ Texture AssetManager::loadTexture(const std::string &file) {
         uint8_t *data = (uint8_t *) stbi_load_16(file.c_str(), &width, &height, &numChannels, 0);
 
         // check if the texture could be loaded
-        if(data == nullptr) {
+        if (data == nullptr) {
             tex.data = nullptr;
             return tex;
         }
@@ -51,7 +55,7 @@ Texture AssetManager::loadTexture(const std::string &file) {
         uint8_t *data = stbi_load(file.c_str(), &width, &height, &numChannels, 0);
 
         // check if the texture could be loaded
-        if(data == nullptr) {
+        if (data == nullptr) {
             ls_log::log(LOG_ERROR, "Could not load texture at location: %s\n", file.c_str());
 
             tex.data = nullptr;
@@ -69,7 +73,8 @@ Texture AssetManager::loadTexture(const std::string &file) {
     return tex;
 }
 
-AssetID AssetManager::loadObj(const std::string &dir, const std::string &file) {
+AssetID AssetManager::loadObj(const std::string &dir, const std::string &file)
+{
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
@@ -114,8 +119,9 @@ AssetID AssetManager::loadObj(const std::string &dir, const std::string &file) {
         for (uint32_t i = 0; i < shape.mesh.indices.size(); i++) {
             auto &index = shape.mesh.indices[i];
 
-            std::tuple<int32_t, int32_t, int32_t> vertexIndices = std::make_tuple(index.vertex_index, index.normal_index,
-                                                                      index.texcoord_index);
+            std::tuple<int32_t, int32_t, int32_t> vertexIndices = std::make_tuple(index.vertex_index,
+                                                                                  index.normal_index,
+                                                                                  index.texcoord_index);
 
             // NOTE: this could be optimized quite easily, by using a better data structure
             int32_t vertexIndex = -1;
@@ -188,7 +194,7 @@ AssetID AssetManager::loadObj(const std::string &dir, const std::string &file) {
         bool usesMetallicTexture = mat.specular_texname != "";
         bool usesNormalTexture = mat.bump_texname != "";
 
-        if(usesAlbedoTexture) {
+        if (usesAlbedoTexture) {
             newMaterial.albedoTexture = loadTexture(new_dir + mat.diffuse_texname);
         } else {
             newMaterial.albedo.x = mat.diffuse[0];
@@ -196,7 +202,7 @@ AssetID AssetManager::loadObj(const std::string &dir, const std::string &file) {
             newMaterial.albedo.z = mat.diffuse[2];
         }
 
-        if(usesRoughnessTexture) {
+        if (usesRoughnessTexture) {
             newMaterial.roughnessTexture = loadTexture(new_dir + mat.specular_highlight_texname);
         } else {
             //TODO: gruesome hack for blender, instead should use PBR extension but blender doesn't support that
@@ -204,19 +210,19 @@ AssetID AssetManager::loadObj(const std::string &dir, const std::string &file) {
             newMaterial.roughness = -(sqrtf(mat.shininess) / 30 - 1);
         }
 
-        if(usesMetallicTexture) {
+        if (usesMetallicTexture) {
             // todo: nol: {reflection_texname} is deprecated see above, this branch is never taken
 //            newMaterial.metallicTexture = loadTexture(new_dir + mat.reflection_texname);
         } else {
             //TODO: gruesome hack for blender, instead should use PBR extension but blender doesn't support that
-            if(mat.ambient[0] == 1.0 && mat.ambient[1] == 1.0 && mat.ambient[2] == 1.0) {
+            if (mat.ambient[0] == 1.0 && mat.ambient[1] == 1.0 && mat.ambient[2] == 1.0) {
                 newMaterial.metallic = 0;
             } else {
                 newMaterial.metallic = mat.ambient[0];
             }
         }
 
-        if(usesNormalTexture) {
+        if (usesNormalTexture) {
             newMaterial.normalMap = loadTexture(new_dir + mat.bump_texname);
         }
 
@@ -227,11 +233,13 @@ AssetID AssetManager::loadObj(const std::string &dir, const std::string &file) {
     return result.assetID;
 }
 
-uint64_t AssetManager::generateNewID() {
+uint64_t AssetManager::generateNewID()
+{
     return indexGeneratorCounter++;
 }
 
-AssetID AssetManager::loadShader(const std::string &vertexShader, const std::string &fragmentShader) {
+AssetID AssetManager::loadShader(const std::string &vertexShader, const std::string &fragmentShader)
+{
     std::ifstream vertexFileStream(vertexShader);
     std::string vertexFileContent((std::istreambuf_iterator<char>(vertexFileStream)),
                                   (std::istreambuf_iterator<char>()));
@@ -248,13 +256,15 @@ AssetID AssetManager::loadShader(const std::string &vertexShader, const std::str
     return result.assetID;
 }
 
-Model *AssetManager::getModel(AssetID id) {
+Model *AssetManager::getModel(AssetID id)
+{
     assert(id.type == MODEL);
     //TODO: containment check
     return &models.at(id.ID);
 }
 
-Shader *AssetManager::getShader(AssetID id) {
+Shader *AssetManager::getShader(AssetID id)
+{
     assert(id.type == SHADER);
     //TODO: containment check
     return &shaders.at(id.ID);

@@ -13,10 +13,10 @@
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 
-#include "glad/glad.h"
+#include <glad/glad.h>
 #include "GLFW/glfw3.h"
 
-#include "util/ls_log.hpp"
+#include "../util/ls_log.hpp"
 #include "asset_manager.hpp"
 
 struct IndexBuffer {
@@ -31,7 +31,9 @@ struct InstanceTransformBuffer {
     uint32_t elementCount;
 
     static InstanceTransformBuffer create(std::vector<glm::mat4> *transforms);
+
     void destroy();
+
     void updateData(std::vector<glm::mat4> *transforms);
 };
 
@@ -70,8 +72,10 @@ struct ShaderProgram {
     GLuint program;
 
     static bool checkShaderCompilation(GLuint shader);
+
     static bool checkProgramLinking(GLuint program);
-    static ShaderProgram createShaderProgram(const char *vertexText,const char *fragmentText);
+
+    static ShaderProgram createShaderProgram(const char *vertexText, const char *fragmentText);
 };
 
 /**
@@ -84,9 +88,11 @@ private:
 
 public:
     VertexArrayObject *getVAO(AssetID assetId);
+
     ShaderProgram *getShaderProgram(AssetID assetId);
 
     void loadModel(Model *model);
+
     void loadShader(Shader *shader);
 };
 
@@ -109,93 +115,19 @@ public:
     void clearScreen();
 
     void setCameraPosition(glm::vec3 pos);
+
     void setView(glm::mat4 viewMatrix);
+
     void setPerspective(glm::mat4 perspectiveMatrix);
+
     void useShader(AssetID id);
+
     void renderModel(AssetID id, glm::mat4 transform);
+
     void renderModelInstanced(AssetID id, InstanceTransformBuffer transforms);
 
     void setGraphicsManager(GraphicsManager *graphicsManager);
 };
-
-/**
- * Interface for input handling.
- */
-class IInputListener {
-public:
-    virtual void onMouseMoved(float xMove, float yMove) = 0;
-    virtual void onMousePositionCallback(float xPos, float yPos) = 0;
-    virtual void onMouseButton(int32_t button, int32_t action, int32_t mods) = 0;
-    virtual void onMouseScroll(float dx, float dy) = 0;
-};
-
-/**
- * Represents a physical window in which graphics are displayed.
- */
-struct Window {
-private:
-    GLFWwindow *handle;
-    uint32_t width;
-    uint32_t height;
-    const char *title;
-
-    Renderer *renderer;
-    std::vector<IInputListener *> inputListeners;
-
-    float prevMouseX = 0;
-    float prevMouseY = 0;
-
-public:
-    Window(uint32_t width, uint32_t height, const char *title);
-
-    void swapBuffers();
-    void pollEvents();
-    bool shouldClose();
-
-    GLFWwindow *getHandle();
-    void cursorPositionCallback(double xpos, double ypos);
-    void mouseButtonCallback(int32_t button, int32_t action, int32_t mods);
-    void mouseScrollCallback(float xoffset, float yoffset);
-
-    Renderer *getRenderer();
-
-    void registerInputListener(IInputListener *listener);
-    void unregisterInputListener(IInputListener *listener);
-
-    void destroy();
-};
-
-/**
- * Top level manager class that allows for multiple windows to be instantiated and controlled individually.
- */
-struct WindowManager {
-private:
-    static WindowManager *singletonInstance;
-
-    std::vector<Window *> windows;
-    WindowManager();
-
-public:
-    void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
-    void mouseButtonCallback(GLFWwindow* window, int32_t button, int32_t action, int32_t mods);
-    void mouseScrollCallback(GLFWwindow* window, float xoffset, float yoffset);
-
-    void registerWindow(Window *window);
-    void deregisterWindow(Window *window);
-
-    static WindowManager *getInstance();
-};
-
-
-/*
- * global callbacks
- */
-
-void globalErrorCallback(int error, const char *description);
-void globalCursorPositionCallback(GLFWwindow *window, double xpos, double ypos);
-void globalMouseButtonCallback(GLFWwindow *window, int32_t button, int32_t action, int32_t mods);
-void globalMouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
-
 
 #endif //GAME_GRAPHICS_HPP
 

@@ -19,6 +19,9 @@ private:
     /** Vertical field of view in radians. */
     float fov;
 
+    float near_clipping_dist;
+    float far_clipping_dist;
+
     /** Target location around which this camera orbits. */
     glm::vec3 target;
 
@@ -27,8 +30,6 @@ private:
 
     /** Used to calculate distance from the camera to the target. (Further away is higher). */
     float zoom_level;
-    float near_clipping_dist;
-    float far_clipping_dist;
 public:
     Camera(float p_aspect_ratio, float p_fov, float p_near_clipping_dist, float p_far_clipping_dist);
 

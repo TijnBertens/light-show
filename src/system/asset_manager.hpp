@@ -130,9 +130,11 @@ public:
      * @param file: name of the .obj file within {dir}.
      */
     AssetID loadObj(const std::string &dir, const std::string &file);
+
     AssetID loadShader(const std::string &vertexShader, const std::string &fragmentShader);
 
     Model *getModel(AssetID id);
+
     Shader *getShader(AssetID id);
 };
 
