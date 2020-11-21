@@ -22,7 +22,7 @@ InputHandler::~InputHandler()
     free(released);
 }
 
-void InputHandler::pull_input()
+void InputHandler::clear_input()
 {
     /** reset the inputs */
     // scroll offset
@@ -40,9 +40,51 @@ void InputHandler::pull_input()
 
     // framebuffer
     framebuffer_resized = false;
+}
 
-    /** populate with new inputs */
-    glfwPollEvents();
+void InputHandler::key_callback(int key, int scancode, int action, int mods)
+{
+    // per documentation: "The action is one of GLFW_PRESS, GLFW_REPEAT or GLFW_RELEASE."
+    if (action == GLFW_PRESS) {
+        this->set_key_state(key, InputHandler::PRESSED, true);
+        this->set_key_state(key, InputHandler::DOWN, true);
+    } else { // if (action == GLFW_RELEASE) {
+        this->set_key_state(key, InputHandler::RELEASED, true);
+        this->set_key_state(key, InputHandler::DOWN, false);
+    }
+}
+
+void InputHandler::scroll_callback(double xoffset, double yoffset)
+{
+    this->set_scroll_offset(xoffset, yoffset);
+}
+
+void InputHandler::mouse_button_callback(int button, int action, int mods)
+{
+    // per documentation: "The action is one of GLFW_PRESS or GLFW_RELEASE."
+    if (action == GLFW_PRESS) {
+        this->set_mouse_button_state(button, InputHandler::PRESSED, true);
+        this->set_mouse_button_state(button, InputHandler::DOWN, true);
+    } else { // if (action == GLFW_RELEASE) {
+        this->set_mouse_button_state(button, InputHandler::RELEASED, true);
+        this->set_mouse_button_state(button, InputHandler::DOWN, false);
+    }
+}
+
+void InputHandler::cursor_position_callback(double xpos, double ypos)
+{
+    this->set_cursor_position(xpos, ypos);
+}
+
+void InputHandler::framebuffer_size_callback(int width, int height)
+{
+    this->set_size(width, height);
+    this->set_resized(true);
+}
+
+void InputHandler::window_iconify_callback(int iconified)
+{
+    this->set_iconified((bool) iconified);
 }
 
 /**

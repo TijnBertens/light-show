@@ -20,22 +20,36 @@
 #include "system/camera.hpp"
 #include "system/window.hpp"
 
+// sub-window handles to obtain renderers and input handlers
+uint32_t sidebar_id, editor_id, toolbar_id;
+
 void update(Window *window, Camera *camera);
 
 void render(Window *window, Camera *camera, AssetID shader_id, AssetID model_id);
 
 int main()
 {
-    Window window(800, 600, "");
+    // define the layout by means of splits
+    auto *layout = new LayoutNode(
+            LayoutNode::VERTICAL, LayoutNode::TOP_LEFT_FIXED, 40,
+            new LayoutNode(&toolbar_id),
+            new LayoutNode(
+                    LayoutNode::HORIZONTAL, LayoutNode::TOP_LEFT_FIXED, 200,
+                    new LayoutNode(&sidebar_id),
+                    new LayoutNode(&editor_id)));
+
+    Window window(800, 600, "", layout);
 
     GraphicsManager graphics_manager;
-    window.getRenderer()->setGraphicsManager(&graphics_manager);
+    window.get_renderer(editor_id)->setGraphicsManager(&graphics_manager);
+    window.get_renderer(sidebar_id)->setGraphicsManager(&graphics_manager); // todo demonstration only
+    window.get_renderer(toolbar_id)->setGraphicsManager(&graphics_manager); // todo demonstration only
 
     AssetManager asset_manager;
 
     AssetID model_id = asset_manager.loadObj(
-            std::string("../res/obj/Chandelier_03"),
-            std::string("Chandelier_03.obj"));
+            std::string("../res/obj/nol"),
+            std::string("nol.obj"));
     Model *chandelier = asset_manager.getModel(model_id);
     graphics_manager.loadModel(chandelier);
 
@@ -48,11 +62,12 @@ int main()
     graphics_manager.loadShader(shader);
 
     Camera camera(
-            (float) window.get_input_handler()->get_size_x() / (float) window.get_input_handler()->get_size_y(),
+            (float) window.get_input_handler(editor_id)->get_size_x() /
+            (float) window.get_input_handler(editor_id)->get_size_y(),
             glm::radians(70.f), .1f, 100.f);
 
     while (!window.shouldClose()) {
-        window.get_input_handler()->pull_input();
+        window.pull_input();
         update(&window, &camera);
         render(&window, &camera, shader_id, model_id);
     }
@@ -63,50 +78,60 @@ int main()
 void update(Window *window, Camera *camera)
 {
     // if ESC is pressed, close the window
-    if (window->get_input_handler()->get_key_state(InputHandler::ESCAPE, InputHandler::PRESSED)) {
+    if (window->get_main_input_handler()->get_key_state(InputHandler::ESCAPE, InputHandler::PRESSED)) {
         window->close();
     }
 
     // update camera zoom
-    camera->add_zoom((float) window->get_input_handler()->get_yoffset());
+    camera->add_zoom((float) window->get_input_handler(editor_id)->get_yoffset());
 
     // update camera position
-    if (window->get_input_handler()->get_mouse_button_state(InputHandler::RMB, InputHandler::DOWN)) {
+    if (window->get_input_handler(editor_id)->get_mouse_button_state(InputHandler::RMB, InputHandler::DOWN)) {
         camera->translate(
-                window->get_input_handler()->get_mouse_xoffset(),
-                window->get_input_handler()->get_mouse_yoffset());
+                window->get_input_handler(editor_id)->get_mouse_xoffset(),
+                window->get_input_handler(editor_id)->get_mouse_yoffset());
     }
 
     // update camera rotation
-    if (window->get_input_handler()->get_mouse_button_state(InputHandler::MMB, InputHandler::DOWN)) {
+    if (window->get_input_handler(editor_id)->get_mouse_button_state(InputHandler::MMB, InputHandler::DOWN)) {
         camera->rotate(
-                window->get_input_handler()->get_mouse_xoffset(),
-                window->get_input_handler()->get_mouse_yoffset());
+                window->get_input_handler(editor_id)->get_mouse_xoffset(),
+                window->get_input_handler(editor_id)->get_mouse_yoffset());
     }
 
     // react on window resizing
-    if (window->get_input_handler()->is_resized()) {
-        uint32_t size_x = window->get_input_handler()->get_size_x();
-        uint32_t size_y = window->get_input_handler()->get_size_y();
+    if (window->get_input_handler(editor_id)->is_resized()) {
+        uint32_t size_x = window->get_input_handler(editor_id)->get_size_x();
+        uint32_t size_y = window->get_input_handler(editor_id)->get_size_y();
 
         // update camera aspect ratio
         camera->set_aspect((float) size_x / (float) size_y);
-
-        // update gl viewport
-        glViewport(0, 0, size_x, size_y);
     }
 }
 
 void render(Window *window, Camera *camera, AssetID shader_id, AssetID model_id)
 {
-    window->getRenderer()->clearScreen();
+    window->get_renderer(editor_id)->clearScreen(); // todo clearing screen is viewport agnostic
 
-    window->getRenderer()->setCameraPosition(camera->get_camera_position());
-    window->getRenderer()->setView(camera->get_view_matrix());
-    window->getRenderer()->setPerspective(camera->get_proj_matrix());
+    window->get_renderer(editor_id)->setCameraPosition(camera->get_camera_position());
+    window->get_renderer(editor_id)->setView(camera->get_view_matrix());
+    window->get_renderer(editor_id)->setPerspective(camera->get_proj_matrix());
 
-    window->getRenderer()->useShader(shader_id);
-    window->getRenderer()->renderModel(model_id, glm::identity<glm::mat4>());
+    window->get_renderer(editor_id)->useShader(shader_id);
+    window->get_renderer(editor_id)->renderModel(model_id, glm::identity<glm::mat4>());
+
+    // todo begin demonstration
+    window->get_renderer(sidebar_id)->setCameraPosition(camera->get_camera_position());
+    window->get_renderer(sidebar_id)->setView(camera->get_view_matrix());
+    window->get_renderer(sidebar_id)->setPerspective(camera->get_proj_matrix());
+    window->get_renderer(sidebar_id)->useShader(shader_id);
+    window->get_renderer(sidebar_id)->renderModel(model_id, glm::identity<glm::mat4>());
+    window->get_renderer(toolbar_id)->setCameraPosition(camera->get_camera_position());
+    window->get_renderer(toolbar_id)->setView(camera->get_view_matrix());
+    window->get_renderer(toolbar_id)->setPerspective(camera->get_proj_matrix());
+    window->get_renderer(toolbar_id)->useShader(shader_id);
+    window->get_renderer(toolbar_id)->renderModel(model_id, glm::identity<glm::mat4>());
+    // todo end demonstration
 
     window->swapBuffers();
 }

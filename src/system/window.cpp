@@ -1,5 +1,10 @@
 #include "window.hpp"
 
+#include <cassert>
+
+#include "../util/ls_log.hpp"
+#include "graphics.hpp"
+
 /** Begin global static GLFW callbacks (in source file since static functions). */
 
 static void global_error_callback(int error, const char *description)
@@ -41,7 +46,7 @@ static void global_window_iconify_callback(GLFWwindow *window, int iconified)
 
 /** End global static GLFW callbacks. */
 
-Window::Window(uint32_t width, uint32_t height, const char *title)
+void Window::init_window(uint32_t width, uint32_t height, const char *title)
 {
     //TODO: find a place to initialize/load GL.
     WindowManager::getInstance()->registerWindow(this);
@@ -80,18 +85,36 @@ Window::Window(uint32_t width, uint32_t height, const char *title)
     glfwSetWindowIconifyCallback(window, global_window_iconify_callback);
 
     this->handle = window;
+}
+
+Window::Window(
+        uint32_t width, uint32_t height, const char *title, LayoutNode *complete
+) :
+        layout(complete)
+{
+    // glfw initialization
+    init_window(width, height, title);
+
     this->initial_width = width;
     this->initial_height = height;
     this->title = title;
 
-    this->renderer = new Renderer();
-    this->input_handler = new InputHandler(width, height);
+    this->main_input_handler = new InputHandler(width, height);
+
+    // id assignment, creation of renderers and additional input handlers
+    uint32_t id = 0;
+    initialize_sub_windows(complete, &id, {0, 0, width, height});
 }
 
 Window::~Window()
 {
-    delete this->input_handler;
-    delete this->renderer;
+    delete this->main_input_handler;
+    for (auto &input_handler : this->input_handlers) {
+        delete input_handler;
+    }
+    for (auto &renderer : this->renderers) {
+        delete renderer;
+    }
     WindowManager::getInstance()->deregisterWindow(this);
 }
 
@@ -100,14 +123,109 @@ void Window::swapBuffers()
     glfwSwapBuffers(this->handle);
 }
 
-Renderer *Window::getRenderer()
+InputHandler *Window::get_main_input_handler()
 {
-    return this->renderer;
+    return this->main_input_handler;
 }
 
-InputHandler *Window::get_input_handler()
+InputHandler *Window::get_input_handler(uint32_t id)
 {
-    return this->input_handler;
+    return this->input_handlers[id];
+}
+
+Renderer *Window::get_renderer(uint32_t id)
+{
+    return this->renderers[id];
+}
+
+void Window::initialize_sub_windows(LayoutNode *node, uint32_t *id, Alignment alignment)
+{
+    if (node->leaf) {
+        *node->id = (*id)++;
+        this->input_handlers.emplace_back(new InputHandler(alignment.width, alignment.height));
+        this->renderers.emplace_back(new Renderer(alignment));
+    } else {
+        initialize_sub_windows(node->top_left, id, node->get_new_alignment(alignment, true));
+        initialize_sub_windows(node->bottom_right, id, node->get_new_alignment(alignment, false));
+    }
+}
+
+void Window::set_active_sub_window(LayoutNode *node, double x, double y, uint32_t width, uint32_t height)
+{
+    if (node->leaf) {
+        this->active_id = *node->id;
+        ls_log::log(LOG_TRACE, "made id %d active\n", this->active_id);
+    } else {
+        if (node->orientation == LayoutNode::HORIZONTAL) {
+            if (node->fixation == LayoutNode::TOP_LEFT_FIXED) {
+                uint32_t split = node->pixels;
+                if (x < split) {
+                    set_active_sub_window(node->top_left, x, y, split, height);
+                } else {
+                    set_active_sub_window(node->bottom_right, x - split, y, width - split, height);
+                }
+            } else {
+                uint32_t split = width - node->pixels;
+                if (x < split) {
+                    set_active_sub_window(node->top_left, x, y, split, height);
+                } else {
+                    set_active_sub_window(node->bottom_right, x - split, y, width - split, height);
+                }
+            }
+        } else {
+            if (node->fixation == LayoutNode::TOP_LEFT_FIXED) {
+                uint32_t split = node->pixels;
+                if (y < split) {
+                    set_active_sub_window(node->top_left, x, y, split, height);
+                } else {
+                    set_active_sub_window(node->bottom_right, x, y - split, width, height - split);
+                }
+            } else {
+                uint32_t split = width - node->pixels;
+                if (y < split) {
+                    set_active_sub_window(node->top_left, x, y, split, height);
+                } else {
+                    set_active_sub_window(node->bottom_right, x, y - split, width, height - split);
+                }
+            }
+        }
+    }
+}
+
+void Window::resize_sub_windows(LayoutNode *node, Alignment alignment)
+{
+    if (node->leaf) {
+        this->input_handlers[*node->id]->framebuffer_size_callback(alignment.width, alignment.height);
+        this->renderers[*node->id]->set_alignment(alignment);
+    } else {
+        resize_sub_windows(node->top_left, node->get_new_alignment(alignment, true));
+        resize_sub_windows(node->bottom_right, node->get_new_alignment(alignment, false));
+    }
+}
+
+void Window::pull_input()
+{
+    // clear all inputs
+    this->main_input_handler->clear_input();
+    for (auto &input_handler : this->input_handlers) {
+        input_handler->clear_input();
+    }
+
+    // poll GLFW events
+    glfwPollEvents();
+
+    // change active window based on LMB press event and current mouse position
+    if (this->main_input_handler->get_mouse_button_state(InputHandler::LMB, InputHandler::PRESSED)) {
+        set_active_sub_window(this->layout,
+                              this->main_input_handler->get_mouse_xpos(), this->main_input_handler->get_mouse_ypos(),
+                              this->main_input_handler->get_size_x(), this->main_input_handler->get_size_y());
+    }
+
+    // propagate framebuffer resize event to sub windows
+    if (this->main_input_handler->is_resized()) {
+        resize_sub_windows(this->layout,
+                           {0, 0, this->main_input_handler->get_size_x(), this->main_input_handler->get_size_y()});
+    }
 }
 
 bool Window::shouldClose()
@@ -127,47 +245,44 @@ GLFWwindow *Window::getHandle()
 
 void Window::key_callback(int key, int scancode, int action, int mods)
 {
-    // per documentation: "The action is one of GLFW_PRESS, GLFW_REPEAT or GLFW_RELEASE."
-    if (action == GLFW_PRESS) {
-        this->input_handler->set_key_state(key, InputHandler::PRESSED, true);
-        this->input_handler->set_key_state(key, InputHandler::DOWN, true);
-    } else { // if (action == GLFW_RELEASE) {
-        this->input_handler->set_key_state(key, InputHandler::RELEASED, true);
-        this->input_handler->set_key_state(key, InputHandler::DOWN, false);
-    }
+    this->main_input_handler->key_callback(key, scancode, action, mods);
+    // also update active view
+    this->input_handlers[this->active_id]->key_callback(key, scancode, action, mods);
 }
 
 void Window::scroll_callback(double xoffset, double yoffset)
 {
-    this->input_handler->set_scroll_offset(xoffset, yoffset);
+    this->main_input_handler->scroll_callback(xoffset, yoffset);
+    // also update active view
+    this->input_handlers[this->active_id]->scroll_callback(xoffset, yoffset);
 }
 
 void Window::mouse_button_callback(int button, int action, int mods)
 {
-    // per documentation: "The action is one of GLFW_PRESS or GLFW_RELEASE."
-    if (action == GLFW_PRESS) {
-        this->input_handler->set_mouse_button_state(button, InputHandler::PRESSED, true);
-        this->input_handler->set_mouse_button_state(button, InputHandler::DOWN, true);
-    } else { // if (action == GLFW_RELEASE) {
-        this->input_handler->set_mouse_button_state(button, InputHandler::RELEASED, true);
-        this->input_handler->set_mouse_button_state(button, InputHandler::DOWN, false);
-    }
+    this->main_input_handler->mouse_button_callback(button, action, mods);
+    // also update active view
+    this->input_handlers[this->active_id]->mouse_button_callback(button, action, mods);
 }
 
 void Window::cursor_position_callback(double xpos, double ypos)
 {
-    this->input_handler->set_cursor_position(xpos, ypos);
+    this->main_input_handler->cursor_position_callback(xpos, ypos);
+    // also update active view
+    this->input_handlers[this->active_id]->cursor_position_callback(xpos, ypos);
 }
 
 void Window::framebuffer_size_callback(int width, int height)
 {
-    this->input_handler->set_size(width, height);
-    this->input_handler->set_resized(true);
+    this->main_input_handler->framebuffer_size_callback(width, height);
+    // also update active view
+    this->input_handlers[this->active_id]->framebuffer_size_callback(width, height);
 }
 
 void Window::window_iconify_callback(int iconified)
 {
-    this->input_handler->set_iconified((bool) iconified);
+    this->main_input_handler->window_iconify_callback(iconified);
+    // also update active view
+    this->input_handlers[this->active_id]->window_iconify_callback(iconified);
 }
 
 WindowManager *WindowManager::singletonInstance = 0;

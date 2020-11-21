@@ -18,6 +18,7 @@
 
 #include "../util/ls_log.hpp"
 #include "asset_manager.hpp"
+#include "window.hpp"
 
 struct IndexBuffer {
     int32_t materialIndex;
@@ -109,8 +110,12 @@ private:
     glm::mat4 activeViewMatrix;
     glm::mat4 activePerspectiveMatrix;
 
+    Alignment alignment;
+
 public:
-    Renderer();
+    Renderer(Alignment alignment);
+
+    void set_alignment(Alignment alignment);
 
     void clearScreen();
 

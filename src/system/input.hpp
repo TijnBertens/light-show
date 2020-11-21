@@ -13,8 +13,23 @@ public:
 
     virtual ~InputHandler();
 
-    /** Clear the input, populate it with new input. */
-    void pull_input();
+    /** Clear the input. Should be done before polling GLFW events. */
+    void clear_input();
+
+    /**
+     * Update functions.
+     */
+    void key_callback(int key, int scancode, int action, int mods);
+
+    void scroll_callback(double xoffset, double yoffset);
+
+    void mouse_button_callback(int button, int action, int mods);
+
+    void cursor_position_callback(double xpos, double ypos);
+
+    void framebuffer_size_callback(int width, int height);
+
+    void window_iconify_callback(int iconified);
 
     /**
      * Mouse scroll offset.

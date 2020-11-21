@@ -157,18 +157,24 @@ void VertexArrayObject::unload()
     //TODO: unload textures
 }
 
-Renderer::Renderer()
-{
+Renderer::Renderer(Alignment alignment) : alignment(alignment)
+{}
 
+void Renderer::set_alignment(Alignment alignment)
+{
+    this->alignment = alignment;
 }
 
 void Renderer::clearScreen()
 {
+    // todo clearing screen is viewport agnostic
+    glViewport(this->alignment.x, this->alignment.y, this->alignment.width, this->alignment.height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void Renderer::renderModel(AssetID id, glm::mat4 transform)
 {
+    glViewport(this->alignment.x, this->alignment.y, this->alignment.width, this->alignment.height);
     assert(graphicsManager);
 
     VertexArrayObject *vao = graphicsManager->getVAO(id);
@@ -293,6 +299,7 @@ void Renderer::setCameraPosition(glm::vec3 pos)
 
 void Renderer::renderModelInstanced(AssetID id, InstanceTransformBuffer transforms)
 {
+    glViewport(this->alignment.x, this->alignment.y, this->alignment.width, this->alignment.height);
     assert(graphicsManager);
 
     VertexArrayObject *vao = graphicsManager->getVAO(id);
@@ -408,7 +415,6 @@ void Renderer::renderModelInstanced(AssetID id, InstanceTransformBuffer transfor
                                 transforms.elementCount);
     }
 }
-
 
 bool ShaderProgram::checkShaderCompilation(GLuint shader)
 {
